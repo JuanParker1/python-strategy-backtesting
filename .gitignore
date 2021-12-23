@@ -1,14 +1,9 @@
 # User files 
+.gitignore
 .idea/
-README
 __pycache__/
-auth.py
-csv/
+config/csv/
 data.csv
 data.xlsx
-main.py
-telegramConn.py
 testing_multiple.xlsx
-tickers.py
-try.py
-weeks.py
+data/

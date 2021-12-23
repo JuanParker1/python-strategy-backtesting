@@ -1,0 +1,6 @@
+
+telegramBotToken = '1262404873:AAEG6hMSQCD19kFBL1wFVogilR6A21VQaW4'
+
+telegramID = '808918721'
+
+telegramGroupID = '-1001565542602'
