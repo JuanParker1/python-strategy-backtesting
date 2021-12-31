@@ -3,13 +3,13 @@ import time
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import config.weeks as wk
+import config.info_weeks as wk
 import os
-from config import tickers as tk
+from config import info_tickers as tk
 from datetime import datetime
 import BBDD as query
 
-from config.telegramConn import sendMsg
+from config.conn_telegram import sendMsg
 
 testingMode = 'On'
 
@@ -448,8 +448,8 @@ def reporting():
     import pandas as pd
     import os
     import matplotlib.pyplot as plt
-    import config.weeks as wk
-    import config.tickers as tk
+    import config.info_weeks as wk
+    import config.info_tickers as tk
     from datetime import datetime, timedelta
 
     import warnings

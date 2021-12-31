@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
-import config.binanceHistToCSV as binance
+import config.binance_hist_to_csv as binance
 import pandas as pd
-import config.tickers as tk
+import config.info_tickers as tk
 import yfinance as yf
 
 
@@ -91,7 +91,6 @@ def main():
             df['Volume'] = df.Volume / 1000000
             df['VolumeMA'] = df['Volume'].rolling(20).mean()
             df = df.fillna(0)
-
 
             insert(engine=engine, ticker=ticker, interval=interval, data_insert=df)
 

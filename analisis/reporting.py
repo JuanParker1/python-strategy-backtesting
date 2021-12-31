@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
-import config.weeks as wk
-import config.tickers as tk
+import config.info_weeks as wk
+import config.info_tickers as tk
 from datetime import datetime, timedelta
 
 import warnings

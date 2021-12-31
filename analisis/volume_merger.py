@@ -1,5 +1,5 @@
 import pandas as pd
-import config.tickers as tk
+import config.info_tickers as tk
 import os
 import matplotlib.pyplot as plt
 

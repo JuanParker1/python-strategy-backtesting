@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
-import config.tickers as tk
+import config.info_tickers as tk
 
 pd.set_option("display.max_columns", 10)
 

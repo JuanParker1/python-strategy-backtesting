@@ -5,7 +5,7 @@ credits: gauss314
 """
 
 import pandas as pd
-import config.tickers as tk
+import config.info_tickers as tk
 import requests
 import os
 from datetime import datetime
@@ -110,13 +110,13 @@ def main():
     tickers = ['BTCUSDT', 'ADAUSDT', 'XTZUSDT', 'SOLUSDT', 'UNIUSDT',
                'LINKUSDT', 'ETHUSDT', 'DOTUSDT', 'XRPUSDT', 'EOSUSDT',
                'LTCUSDT', 'DOGEUSDT', 'MATICUSDT', 'AXSUSDT', 'BNBUSDT']
-    #import config.tickers as tk
+    # import config.tickers as tk
     tickers = tk.tickers
-    tickers = ['BTCUSDT', 'ETHUSDT']
-    interval = '1w'
+    # tickers = ['BTCUSDT', 'ETHUSDT']
+    interval = '1h'
 
-    fromDate = '2021-01-04'
-    toDate = '2021-12-06'
+    fromDate = '2021-01-01'
+    toDate = '2021-12-31'
 
     for ticker in tickers:
 
@@ -129,7 +129,7 @@ def main():
         df['VolumeMA'] = df['Volume'].rolling(20).mean()
 
         # Creo csv
-        path = os.getcwd() + '\\csv\\'
+        path = os.getcwd() + '/csv/'
         fileName = f'{ticker}-{interval}.csv'
         df.to_csv(path + fileName)
 
