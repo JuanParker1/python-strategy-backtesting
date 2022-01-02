@@ -1,6 +1,6 @@
 # User files 
 .gitignore
-.idea/
+
 __pycache__/
 config/csv/
 data.csv

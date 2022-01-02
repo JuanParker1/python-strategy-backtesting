@@ -16,6 +16,97 @@ testingMode = 'On'
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
+def main():
+    # Setting Parameters
+    pivotInterval = '1w'
+    pivotTolerance = 0.015
+    candlesInterval = '1h'
+    smaValue = 7
+    resultsList = list()
+    asset = 'Equity'
+
+    # Weeks & tickers to check
+    if asset == 'Equity':
+        tickers = tk.cedears
+    else:
+        tickers = tk.tickers
+
+    #tickers = ['AAL']
+
+    weeks = [
+        ('2021-01-04', '2021-01-11'),
+        ('2021-01-11', '2021-01-18')
+    ]
+    weeks = wk.weeks
+
+    # Dataframes to complete
+    weeklyResults = resultsByCoin = resultsByWeek = finalResults = csvResults = pd.DataFrame()
+
+    # Pivot calculation
+    pivotes = downloadPivotes(tickers=tickers, interval=pivotInterval, type=asset)
+
+    # Creating initial DB to work with
+    dataInit = createTestingDf(tickers=tickers,
+                               interval=candlesInterval,
+                               pivotes=pivotes,
+                               smaValue=smaValue,
+                               asset=asset)
+    # Backtesting
+    for week in weeks:
+        dateFromSample = week[0]
+        dateToSample = week[1]
+
+        # Pivot calculation
+        print(f'\nCalculating week {week[0]} to {week[1]}')
+
+        for ticker in tickers:
+
+            # Sampling Dumpling
+            cond1 = (dataInit[ticker].index >= dateFromSample)
+            cond2 = (dataInit[ticker].index <= dateToSample)
+            mask = cond1 & cond2
+
+            data = addColumns(dataInit[ticker].loc[mask])
+            data = data.fillna(0)
+            data.reset_index(inplace=True)
+            data['Week'] = week[0]
+
+            # Converting DataFrame to Dict
+            dataDict = data.to_dict('records')
+
+            if len(dataDict) > 0:
+                # Apply strategy
+                dataWithTrades = estrategiaPivots(dictValues=dataDict,
+                                                  pivotTolerance=pivotTolerance)
+
+                resultsList.append(dataWithTrades)
+
+            else:
+                print(f'No se encontraron resultados para {ticker}')
+
+    print("\nConvirtiendo listas a DF")
+    time.sleep(1)
+    listToDf = list()
+
+    for lista in tqdm(resultsList):
+        listToDf.extend(lista)
+
+    resultsDf = pd.DataFrame(listToDf)
+
+    print("\nConvirtiendo resultados a CSV")
+    resultsDf.to_csv('resultsEqty.csv')
+    #resultsDf.to_excel('testing Results.b xlsx')
+    print('Results.CSV created')
+
+    print(f'\nReporting')
+    reportingView(df=resultsDf)
+    #reporting(interval=pivotInterval, type=asset)
+
+    try:
+        reporting(interval=pivotInterval, type=asset)
+    except Exception as e:
+        print(f'Nope> {e}')
+
 def convert_datetime(dt):
     return datetime.strftime(dt, '%Y-%m-%d %H:%M-%S')
 
@@ -709,98 +800,6 @@ def reporting(interval, type='Equity'):
     df.plot(ax=axs[2][1], kind='bar', width=0.1, title='Sharpe Semanal').set_xlabel('Sharpe Ratio')
 
     plt.show()
-
-
-def main():
-    # Setting Parameters
-    pivotInterval = '1w'
-    pivotTolerance = 0.015
-    candlesInterval = '1h'
-    smaValue = 7
-    resultsList = list()
-    asset = 'Equity'
-
-    # Weeks & tickers to check
-    if asset == 'Equity':
-        tickers = tk.cedears
-    else:
-        tickers = tk.tickers
-
-    #tickers = ['AAL']
-
-    weeks = [
-        ('2021-01-04', '2021-01-11'),
-        ('2021-01-11', '2021-01-18')
-    ]
-    weeks = wk.weeks
-
-    # Dataframes to complete
-    weeklyResults = resultsByCoin = resultsByWeek = finalResults = csvResults = pd.DataFrame()
-
-    # Pivot calculation
-    pivotes = downloadPivotes(tickers=tickers, interval=pivotInterval, type=asset)
-
-    # Creating initial DB to work with
-    dataInit = createTestingDf(tickers=tickers,
-                               interval=candlesInterval,
-                               pivotes=pivotes,
-                               smaValue=smaValue,
-                               asset=asset)
-    # Backtesting
-    for week in weeks:
-        dateFromSample = week[0]
-        dateToSample = week[1]
-
-        # Pivot calculation
-        print(f'\nCalculating week {week[0]} to {week[1]}')
-
-        for ticker in tickers:
-
-            # Sampling Dumpling
-            cond1 = (dataInit[ticker].index >= dateFromSample)
-            cond2 = (dataInit[ticker].index <= dateToSample)
-            mask = cond1 & cond2
-
-            data = addColumns(dataInit[ticker].loc[mask])
-            data = data.fillna(0)
-            data.reset_index(inplace=True)
-            data['Week'] = week[0]
-
-            # Converting DataFrame to Dict
-            dataDict = data.to_dict('records')
-
-            if len(dataDict) > 0:
-                # Apply strategy
-                dataWithTrades = estrategiaPivots(dictValues=dataDict,
-                                                  pivotTolerance=pivotTolerance)
-
-                resultsList.append(dataWithTrades)
-
-            else:
-                print(f'No se encontraron resultados para {ticker}')
-
-    print("\nConvirtiendo listas a DF")
-    time.sleep(1)
-    listToDf = list()
-
-    for lista in tqdm(resultsList):
-        listToDf.extend(lista)
-
-    resultsDf = pd.DataFrame(listToDf)
-
-    print("\nConvirtiendo resultados a CSV")
-    resultsDf.to_csv('resultsEqty.csv')
-    #resultsDf.to_excel('testing Results.b xlsx')
-    print('Results.CSV created')
-
-    print(f'\nReporting')
-    reportingView(df=resultsDf)
-    #reporting(interval=pivotInterval, type=asset)
-
-    try:
-        reporting(interval=pivotInterval, type=asset)
-    except Exception as e:
-        print(f'Nope> {e}')
 
 
 if __name__ == '__main__':
