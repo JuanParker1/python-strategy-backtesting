@@ -1,6 +1,6 @@
 # User files 
 .gitignore
-
+config/database_crypto_2021.zip
 __pycache__/
 config/csv/
 data.csv

@@ -5,7 +5,7 @@ credits: gauss314
 """
 
 import pandas as pd
-import config.info_tickers as tk
+import info_tickers as tk
 import requests
 import os
 from datetime import datetime
