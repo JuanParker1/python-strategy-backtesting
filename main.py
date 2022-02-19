@@ -24,23 +24,13 @@ def main():
     smaValue = 7
     resultsList = list()
     asset = 'Equity'
+    weeks = wk.weeks
 
     # Weeks & tickers to check
     if asset == 'Equity':
         tickers = tk.cedears
     else:
         tickers = tk.tickers
-
-    #tickers = ['AAL']
-
-    weeks = [
-        ('2021-01-04', '2021-01-11'),
-        ('2021-01-11', '2021-01-18')
-    ]
-    weeks = wk.weeks
-
-    # Dataframes to complete
-    weeklyResults = resultsByCoin = resultsByWeek = finalResults = csvResults = pd.DataFrame()
 
     # Pivot calculation
     pivotes = downloadPivotes(tickers=tickers, interval=pivotInterval, type=asset)

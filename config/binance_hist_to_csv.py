@@ -1,11 +1,14 @@
 """
 Armado de DataFrame y exportación a CSV de histórico de precios en Binance para distintos intervalos
+
 @author: alexmnotfound
-credits: gauss314
+credits to: gauss314
 """
+import sys
+sys.path.append('/home/admin/PycharmProjects/python-strategy-backtesting')
 
 import pandas as pd
-import info_tickers as tk
+import config.info_tickers as tk
 import requests
 import os
 from datetime import datetime

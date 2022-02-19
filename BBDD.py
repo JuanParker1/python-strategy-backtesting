@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/admin/PycharmProjects/python-strategy-backtesting')
+
 from sqlalchemy import create_engine
 import config.binance_hist_to_csv as binance
 import pandas as pd
