@@ -1,1 +1,1 @@
-Trading tools in Pyhton
+Powerful Trading tools in Pyhton
