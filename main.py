@@ -22,11 +22,13 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 
 def main():
+    # Define what are we testing
+    equity = 'equity'
+    crypto = 'crypto'
+    asset = equity
+
     # Setting Parameters
-    isEquity = 'equity'
-    isCrypto = 'crypto'
-    asset = isEquity
-    pivotInterval = '1w'
+    pivotInterval = '1M'
     pivotTolerance = 0.015
     candlesInterval = '1h'
     smaValue = 7
@@ -35,8 +37,8 @@ def main():
 
     # Weeks & tickers to check
     if asset == 'equity':
-        # tickers = tk.cedears
-        tickers = ['AAPL', 'TSLA']
+        tickers = tk.cedears
+        # tickers = ['AAPL', 'TSLA']
     else:
         tickers = tk.tickers
 
@@ -203,8 +205,12 @@ def downloadPivotes(tickers, interval, type):
 
         else:
             import yfinance as yf
+            #  1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo and 3mo
+
             if interval == '1w':
                 interval = '1wk'
+            if interval == '1M':
+                interval = '1mo'
 
             pivotesData = yf.download(tickers=ticker, interval=interval)
             pivotesData.index.rename('openTime', inplace=True)
@@ -591,6 +597,8 @@ def reporting(interval, type='Equity'):
         bench = 'SPY'
         if interval == '1w':
             interval = '1wk'
+        if interval == '1M':
+            interval = '1mo '
 
         dataBench = yf.download(tickers=bench, interval=interval)
         dataBench.index.rename('openTime', inplace=True)
