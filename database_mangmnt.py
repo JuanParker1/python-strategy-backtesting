@@ -1,3 +1,8 @@
+"""
+TODO: date to excludes the indicated that. May be difficult to assimilate on the long run
+TODO: AAPL (and gods know how many) doesn't remove duplicates when inserting
+"""
+
 import sys
 sys.path.append('/home/admin/PycharmProjects/python-strategy-backtesting')
 
@@ -8,7 +13,49 @@ import config.info_tickers as tk
 import yfinance as yf
 
 
-def select(engine, ticker, interval, year='2021'):
+def main():
+    # Setting parameters
+    is_crypto, is_equity = 'crypto', 'equity'
+    enviroment = is_equity
+    intervals = ['1h']
+    dateFrom = '2021-01-01'
+    dateTo = '2022-01-01'
+
+    if enviroment == is_equity:
+        tickers = ['AAPL', 'TSLA']
+        tickers = tk.cedears
+    if enviroment == is_crypto:
+        tickers = ['BTCUSDT', 'ETHUSDT']
+        # tickers = tk.tickers
+
+    # Setting DBConn USER : PASS @ HOST / BBDD_NAME
+    engine = create_engine(f'mysql+pymysql://root:@localhost/{enviroment}')
+
+    for ticker in tickers:
+        for interval in intervals:
+
+            if enviroment == is_crypto:
+                df = binance.historicDataFull(ticker, interval, dateFrom, dateTo)
+            if enviroment == is_equity:
+                if interval == '1w':
+                    interval = '1wk'
+                df = yf.download(tickers=ticker, interval=interval, start=dateFrom, end=dateTo)
+
+            df.index = pd.to_datetime(df.index,  format='%Y-%m-%d %H:%M')
+            df.index = df.index.values.astype('datetime64[s]')
+            df.index.rename('openTime', inplace=True)
+
+            df['Volume'] = df.Volume / 1000000
+            df['VolumeMA'] = df['Volume'].rolling(20).mean()
+            df = df.fillna(0)
+
+            # Define here what you want to do
+            insert(engine=engine, ticker=ticker, interval=interval, data_insert=df)
+
+
+def select(ticker, interval, year='2021', asset=''):
+    # Setting DBConn USER : PASS @ HOST / BBDD_NAME
+    engine = create_engine(f'mysql+pymysql://root:@localhost/{asset}')
 
     # Setting the symbol table_name to lowecase and defining table table_name
     ticker = ticker.lower()
@@ -43,6 +90,7 @@ def insert(engine, ticker, interval, data_insert, year='2021'):
     # Comparing Df's and inserting data in DB
     df = pd.concat([data, data_insert])
     df = df.reset_index(drop=False)
+    df = df.round(4)
     df_gpby = df.groupby(list(df.columns))
     idx = [x[0] for x in df_gpby.groups.values() if len(x) == 1]
 
@@ -56,46 +104,6 @@ def insert(engine, ticker, interval, data_insert, year='2021'):
     else:
         print(f'{ticker}: No se encontraron valores para insertar\n')
 
-
-def main():
-    # Setting parameters
-    is_equity = 'equity'
-    is_crypto = 'crypto'
-    enviroment = is_equity
-
-    intervals = ['1w']
-    dateFrom = '2021-01-01'
-    dateTo = '2021-11-29'
-
-    if enviroment == is_equity:
-        tickers = ['AAPL', 'AMD', 'X']
-        tickers = tk.quantfury
-    if enviroment == is_crypto:
-        tickers = ['BTCUSDT', 'ETHUSDT']
-        # tickers = tk.tickers
-
-    # Setting DBConn USER : PASS @ HOST / BBDD_NAME
-    engine = create_engine(f'mysql+pymysql://root:@localhost/{enviroment}')
-
-    for ticker in tickers:
-        for interval in intervals:
-
-            if enviroment == is_crypto:
-                df = binance.historicDataFull(ticker, interval, dateFrom, dateTo)
-            if enviroment == is_equity:
-                if interval == '1w':
-                    interval = '1wk'
-                    df = yf.download(tickers=ticker, interval=interval, start=dateFrom, end=dateTo)
-
-            df.index = pd.to_datetime(df.index,  format='%Y-%m-%d %H:%M')
-            df.index = df.index.values.astype('datetime64[s]')
-            df.index.rename('openTime', inplace=True)
-
-            df['Volume'] = df.Volume / 1000000
-            df['VolumeMA'] = df['Volume'].rolling(20).mean()
-            df = df.fillna(0)
-
-            insert(engine=engine, ticker=ticker, interval=interval, data_insert=df)
 
 
 if __name__ == '__main__':

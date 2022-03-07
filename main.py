@@ -1,3 +1,8 @@
+"""
+TODO: change pivots to db
+TODO: convert equity and crypto str to var
+TODO: check dates handling (utc, utc-3)
+"""
 import requests
 import time
 import pandas as pd
@@ -7,7 +12,7 @@ import config.info_weeks as wk
 import os
 from config import info_tickers as tk
 from datetime import datetime
-import BBDD as query
+import database_mangmnt as query
 
 from config.conn_telegram import sendMsg
 
@@ -18,17 +23,20 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 def main():
     # Setting Parameters
+    isEquity = 'equity'
+    isCrypto = 'crypto'
+    asset = isEquity
     pivotInterval = '1w'
     pivotTolerance = 0.015
     candlesInterval = '1h'
     smaValue = 7
     resultsList = list()
-    asset = 'Equity'
     weeks = wk.weeks
 
     # Weeks & tickers to check
-    if asset == 'Equity':
-        tickers = tk.cedears
+    if asset == 'equity':
+        # tickers = tk.cedears
+        tickers = ['AAPL', 'TSLA']
     else:
         tickers = tk.tickers
 
@@ -65,7 +73,9 @@ def main():
             dataDict = data.to_dict('records')
 
             if len(dataDict) > 0:
+                ################
                 # Apply strategy
+                ################
                 dataWithTrades = estrategiaPivots(dictValues=dataDict,
                                                   pivotTolerance=pivotTolerance)
 
@@ -96,6 +106,7 @@ def main():
         reporting(interval=pivotInterval, type=asset)
     except Exception as e:
         print(f'Nope> {e}')
+
 
 def convert_datetime(dt):
     return datetime.strftime(dt, '%Y-%m-%d %H:%M-%S')
@@ -178,7 +189,7 @@ def pivotsCalculation(df):
         print(f'Dataframe can not be processed: {e}')
 
 
-def downloadPivotes(tickers, interval, type='Crypto'):
+def downloadPivotes(tickers, interval, type):
     pivotes = dict()
     i = 1
 
@@ -308,6 +319,10 @@ def createTestingDf(tickers, interval, pivotes, smaValue, asset):
         data['sma'] = data.Close.rolling(smaValue).mean()
         data = addRSI(data=data, ruedas=14)
         data = addPsar(data)
+
+        if asset == 'equity':
+            from datetime import timedelta
+            pivotes[ticker].index = pivotes[ticker].index + timedelta(hours=5)
 
         # Merging DF
         dfFinal[ticker] = pd.merge(data, pivotes[ticker], how='left', on='openTime')
@@ -555,10 +570,8 @@ def reporting(interval, type='Equity'):
 
     weeks = wk.weeks
 
-    path = 'C:\\Users\\Matias.MSI\\PycharmProjects\\backtesting\\'
-
     file = 'resultsEqty.csv'
-    data = pd.read_csv(path + file)
+    data = pd.read_csv(file)
 
     ################
     #### SHARPE
@@ -566,14 +579,14 @@ def reporting(interval, type='Equity'):
 
     tasaLibreRiesgo = 0.01 / 360
 
-    if type == 'Crypto':
+    if type == 'crypto':
         bench = 'BTC'
         dataBench = pd.read_csv('C:\\Users\\Matias.MSI\\PycharmProjects\\backtesting\\config\\csv\\BTCUSDT-1w.csv')
         dataBench.set_index(['openTime'], inplace=True)
 
         dataBench.index = pd.to_datetime(dataBench.index)
 
-    if type == 'Equity':
+    if type == 'equity':
         import yfinance as yf
         bench = 'SPY'
         if interval == '1w':

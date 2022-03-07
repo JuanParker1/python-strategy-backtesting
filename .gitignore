@@ -1,10 +1,12 @@
-# User files 
+# Py env & standard
 .gitignore
-config/database_crypto_2021.zip
 __pycache__/
+data/
+.idea/
+# User files
+config/database_crypto_2021.zip
 config/csv/
 data.csv
 data.xlsx
 testing_multiple.xlsx
-data/
-.idea/
+internal.txt
