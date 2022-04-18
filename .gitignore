@@ -1,13 +1,8 @@
 # Py env & standard
-.gitignore
 __pycache__/
-data/
 .idea/
+
 # User files
 config/database_crypto_2021.zip
 config/csv/
-data.csv
-data.xlsx
-testing_multiple.xlsx
 internal.txt
-resultsEqty.csv

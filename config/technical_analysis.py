@@ -1,9 +1,17 @@
 """
-Herramientas para manejo de DataFrames con OHLC
+Indicators and price history tools for trading
 
 @author: alexmnotfound
 credits: gauss314
 """
+import pandas as pd
+import pandas_ta as ta
+from datetime import datetime
+
+
+#############################################
+#########       Price history       #########
+#############################################
 
 def getHistoricoYFinance(symbol, start='2000-01-01', interval='1d', end=None):
     """
@@ -22,19 +30,22 @@ def getHistoricoYFinance(symbol, start='2000-01-01', interval='1d', end=None):
     return data
 
 
-def getHistoricoBinance(symbol, interval='1d', startTime=None, endTime=None, limit=1000):
-    '''
-    Descarga de histórico de precios de Binance
-
-    Minutos: 1m, 2m, 3m, 15m, 30m
-    Horas: 1h, 2h, 4h
-    Dias: 1d, 3d
-    Meses: 1M
-    '''
-    import pandas as pd
+def binanceHistoricData(symbol, interval='1d', startTime=None, endTime=None, limit=1000):
+    """
+        Getting historic Data from Binance API
+    :param symbol: ticker (BTCUSDT, ETHUSDT, etc..)
+    :param interval:
+        Minutes: 1m, 2m, 3m, 15m, 30m
+        Hours: 1h, 2h, 4h
+        Days: 1d, 3d
+        Month: 1M
+    :param startTime: time in ms
+    :param endTime: time in ms
+    :param limit: row limits (1000 default)
+    :return: DataFrame with OHLC price history
+    """
     import requests
 
-    # Defino URL y parámetros para request
     url = 'https://api.binance.com/api/v3/klines'
 
     params = {'symbol': symbol, 'interval': interval,
@@ -43,20 +54,52 @@ def getHistoricoBinance(symbol, interval='1d', startTime=None, endTime=None, lim
     r = requests.get(url, params=params)
     js = r.json()
 
-    # Armo el dataframe
+    # Creating Dataframe
     cols = ['openTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'cTime',
             'qVolume', 'trades', 'takerBase', 'takerQuote', 'Ignore']
 
     df = pd.DataFrame(js, columns=cols)
 
-    # Convierto los valores strings a numeros
+    # Converting strings to numeric
     df = df.apply(pd.to_numeric)
 
-    # Le mando indice de timestamp
+    # Timestamp Index handling
     df.index = pd.to_datetime(df.openTime, unit='ms')
 
-    # Elimino columnas que no quiero
+    # Dropping unused columns
     df = df.drop(['openTime', 'cTime', 'takerBase', 'takerQuote', 'Ignore'], axis=1)
+    df = df.drop(['trades', 'qVolume'], axis=1)
+
+    return df
+
+
+def binanceHistoricDataFull(ticker, interval, dateFrom, dateTo):
+    hist = binanceHistoricData(ticker,
+                               interval=interval,
+                               startTime=f'{dateToMs(dateFrom)}',
+                               endTime=f'{dateToMs(dateTo)}')
+
+    # Adjunto valores al DataFrame
+    df = hist
+
+    # Chequeo si el último row corresponde a la fecha final
+    lastValue = dateToMs(hist.index[-1])
+
+    while lastValue < dateToMs(dateTo):
+        hist = binanceHistoricData(ticker,
+                                   interval=interval,
+                                   startTime=f'{lastValue}',
+                                   endTime=f'{dateToMs(dateTo)}')
+
+        lastValue = dateToMs(hist.index[-1])
+
+        if lastValue == dateToMs(df.index[-1]):
+            break
+
+        df = df.append(hist)
+
+    # Borro duplicados
+    df.drop_duplicates(inplace=True)
 
     return df
 
@@ -68,7 +111,7 @@ def getDataExcel(ticker, timeframe):
     import pandas as pd
     try:
         data = pd.read_excel(ticker + timeframe + '.xlsx').set_index('openTime').sort_index()
-        #data.columns = ['Open', 'High', 'Low', 'Close', 'AdjClose', 'Volume']
+        # data.columns = ['Open', 'High', 'Low', 'Close', 'AdjClose', 'Volume']
         data['pctChange'] = data.Close.pct_change()
     except:
         try:
@@ -79,6 +122,56 @@ def getDataExcel(ticker, timeframe):
             data = 'Sorry man no encontre el archivo en tus directorios'
     return data
 
+
+def getDBData(ticker, interval, asset):
+    '''
+    path = os.getcwd() + '\\config\\csv\\'
+    fileName = f'{ticker}-{interval}.csv'
+    data = pd.read_csv(path + fileName)
+
+    data.set_index('openTime', inplace=True)
+    '''
+    from config import db_management as query
+
+    data = query.select(ticker=ticker, interval=interval, asset=asset)
+    data.index = pd.to_datetime(data.index, utc=False)
+
+    return data
+
+
+#############################################
+#########          Others           #########
+#############################################
+
+def dateToMs(date, utc=(-3)):
+    """
+    Cambia fecha a MS
+    :param date: str(AAAA-MM-DD)
+    :param utc: time zone
+    :return: ms
+    """
+    try:
+        dt_obj = datetime.strptime(f'{date} 00:00:00',
+                                   '%Y-%m-%d %H:%M:%S')
+    except:
+        try:
+            dt_obj = datetime.strptime(f'{date}',
+                                       '%Y-%m-%d %H:%M:%S')
+        except Exception as e:
+            print(f"No se pudo convertir la fecha: {e}")
+
+    millisec = int(dt_obj.timestamp() * 1000) + (3600000 * utc)
+
+    return millisec
+
+
+def convert_datetime(dt):
+    return datetime.strftime(dt, '%Y-%m-%d %H:%M-%S')
+
+
+#############################################
+#########        Indicators         #########
+#############################################
 
 def addPivots(df):
     '''
@@ -114,7 +207,7 @@ def addPivots(df):
     return df
 
 
-def addRSI(data, ruedas, ruedas_pend=0):
+def addRSI(data, ruedas, ruedas_pend=1):
     """
     Agrega la columna RSI a nuestro dataframe, basado en su columna Close
 
@@ -186,3 +279,77 @@ def addEMA(data, n):
 def addFW(data, n):
     data['fw_' + str(n)] = (data.Close.shift(-n) / data.AdjClose - 1) * 100
     return data
+
+
+def addAtr(data, period, maType):
+    #
+    ## True range calculation
+    #
+    import numpy as np
+
+    high_low = data['High'] - data['Low']
+    high_close = np.abs(data['High'] - data['Close'].shift())
+    low_close = np.abs(data['Low'] - data['Close'].shift())
+    ranges = pd.concat([high_low, high_close, low_close], axis=1)
+    true_range = np.max(ranges, axis=1)
+
+    if maType == 'sma':
+        # SMA smoothing
+        data['atr'] = true_range.rolling(period).mean()
+    if maType == 'ema':
+        data['atr'] = true_range.ewm(span=period).mean()
+    if maType == 'rma':
+        data['atr'] = ta.rma(true_range, period)
+
+    return data
+
+
+def addMaByType(data, column, maType, length):
+    if maType == 'sma':
+        # SMA smoothing:
+        data[maType] = data[column].rolling(length).mean()
+    if maType == 'ema':
+        #   data[maType] = data[column].ewm(span=length).mean()
+        data[maType] = ta.ema(data[column], length)
+    if maType == 'rma':
+        data[maType] = ta.rma(data[column], length)
+    else:
+        data[maType] = data[column].ewm(span=length).mean()
+
+    return data
+
+
+def addVolume(data):
+    data['Volume'] = data.Volume / 1000000
+    data['VolumeMA'] = data['Volume'].rolling(20).mean()
+
+    return data
+
+
+def addSource(data, source):
+    if source == 'hl2':
+        data['hl2'] = (data['High'] + data['Low']) / 2
+    return data
+
+
+def addPsar(df):
+    """
+    Devuelve Parabolic SAR con los valores de Trading View
+
+    Librería necesaria:
+        pip install -U git+https://github.com/twopirllc/pandas-ta
+
+    :param df: DataFrame con columna "Close"
+    :return: DataFrame con nueva columna "PSAR"
+    """
+    import numpy as np
+
+    df.ta.psar(append=True)
+
+    dfAux = df[['PSARl_0.02_0.2', 'PSARs_0.02_0.2']]
+
+    df['PSAR'] = np.where(dfAux['PSARl_0.02_0.2'].isnull(), dfAux.index.map(dfAux['PSARs_0.02_0.2']),
+                          dfAux['PSARl_0.02_0.2'])
+    df = df.drop(['PSARl_0.02_0.2', 'PSARs_0.02_0.2', 'PSARaf_0.02_0.2', 'PSARr_0.02_0.2'], axis=1)
+
+    return df
