@@ -7,26 +7,26 @@ import sys
 sys.path.append('/')
 
 from sqlalchemy import create_engine
-import config.binance_tocsv as binance
 import pandas as pd
 import config.info_tickers as tk
 import yfinance as yf
+import config.technical_analysis as ta
 
 
 def main():
     # Setting parameters
     is_crypto, is_equity = 'crypto', 'equity'
-    enviroment = is_equity
-    intervals = ['1h']
-    dateFrom = '2021-01-01'
-    dateTo = '2022-01-01'
+    enviroment = is_crypto
+    intervals = ['30m', '1h']
+    dateFrom = '2022-01-01'
+    dateTo = '2022-04-19'
 
     if enviroment == is_equity:
-        tickers = tk.cedears
         tickers = ['AAPL', 'TSLA']
+        tickers = tk.cedears
     if enviroment == is_crypto:
         tickers = ['BTCUSDT', 'ETHUSDT']
-        # tickers = tk.tickers
+        tickers = tk.quantCrypto
 
     # Setting DBConn USER : PASS @ HOST / BBDD_NAME
     engine = create_engine(f'mysql+pymysql://root:@localhost/{enviroment}')
@@ -35,7 +35,7 @@ def main():
         for interval in intervals:
 
             if enviroment == is_crypto:
-                df = binance.historicDataFull(ticker, interval, dateFrom, dateTo)
+                df = ta.binanceHistoricDataFull(ticker, interval, dateFrom, dateTo)
             if enviroment == is_equity:
                 if interval == '1w':
                     interval = '1wk'

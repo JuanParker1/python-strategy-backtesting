@@ -67,15 +67,16 @@ def reporting(data, withPrint = False):
         # print(f"\n## Volatilidad (vs {bench}) ##")
 
     df = pd.DataFrame(data={'P&L': round(rendTot, 2),
+                            'Efficiency': round(tradesPos / (longsQty + shortsQty) * 100, 2),
                             'Trades Qty': longsQty + shortsQty,
-                            'Long Qty': longsQty,
+                            'Trades Wins': tradesPos,
+                            'Trades Loss': tradesNeg,
+                            'Longs Qty': longsQty,
                             'Shorts Qty': shortsQty,
                             'Long Wins': longsPos,
                             'Shorts Wins': shortsPos,
-                            'Trades Wins': tradesPos,
-                            'Trades Loss': tradesNeg,
-                            'Biggest_Loss': data['profit'].min(),
-                            'Biggest_Win': data['profit'].max()},
+                            'Biggest Loss': data['profit'].min(),
+                            'Biggest Win': data['profit'].max()},
                       index=[0]
                       )
 

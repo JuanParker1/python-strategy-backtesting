@@ -55,6 +55,34 @@ tickers = ('AAVEUSDT',
            'LTCUSDT'
            )
 
+quantCrypto = (
+    'AAVEUSDT',
+    'ADAUSDT',
+    'AVAXUSDT',
+    'BCHUSDT',
+    'BTCUSDT',
+    'DASHUSDT',
+    'DOTUSDT',
+    'EOSUSDT',
+    'ETCUSDT',
+    'ETHUSDT',
+    'FILUSDT',
+    'IOTAUSDT',
+    'LINKUSDT',
+    'LTCUSDT',
+    # 'LUNAUSDT',
+    # 'MATICUSDT',
+    'QTUMUSDT',
+    'NEOUSDT',
+    # 'SOLUSDT',
+    'THETAUSDT',
+    'UNIUSDT',
+    'XMRUSDT',
+    'XRPUSDT',
+    'XTZUSDT',
+    'ZECUSDT'
+)
+
 theLosers = (
     'YFIUSDT',
     'BELUSDT',
@@ -83,6 +111,8 @@ theLosers = (
     'XTZUSDT',
     'LTCUSDT',
     'ZECUSDT')
+
+
 
 theBest = ('AAVEUSDT',
            'AXSUSDT',
@@ -534,3 +564,5 @@ quantfury = (
     'YELP',
     'YUM',
     'ZEN')
+
+

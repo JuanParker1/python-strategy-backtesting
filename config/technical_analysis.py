@@ -133,10 +133,13 @@ def getDBData(ticker, interval, asset):
     '''
     from config import db_management as query
 
-    data = query.select(ticker=ticker, interval=interval, asset=asset)
-    data.index = pd.to_datetime(data.index, utc=False)
+    try:
+        data = query.select(ticker=ticker, interval=interval, asset=asset)
+        data.index = pd.to_datetime(data.index, utc=False)
+        return data
 
-    return data
+    except Exception as e:
+        print(f'ERROR: Please check DB script, {e}')
 
 
 #############################################
@@ -345,11 +348,9 @@ def addPsar(df):
     import numpy as np
 
     df.ta.psar(append=True)
+    df['psarl'] = df['PSARl_0.02_0.2']
+    df['psars'] = df['PSARs_0.02_0.2']
 
-    dfAux = df[['PSARl_0.02_0.2', 'PSARs_0.02_0.2']]
-
-    df['PSAR'] = np.where(dfAux['PSARl_0.02_0.2'].isnull(), dfAux.index.map(dfAux['PSARs_0.02_0.2']),
-                          dfAux['PSARl_0.02_0.2'])
     df = df.drop(['PSARl_0.02_0.2', 'PSARs_0.02_0.2', 'PSARaf_0.02_0.2', 'PSARr_0.02_0.2'], axis=1)
 
     return df
